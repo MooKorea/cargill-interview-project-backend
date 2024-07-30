@@ -3,7 +3,13 @@ import { NextRequest, NextResponse } from "next/server";
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
 
-  const requiredParams = ["stocksTicker", "multiplier", "timespan", "startDate", "endDate"];
+  const requiredParams = [
+    "stocksTicker",
+    "multiplier",
+    "timespan",
+    "startDate",
+    "endDate",
+  ];
 
   for (const param of requiredParams) {
     if (searchParams.get(param) === null) {
@@ -14,8 +20,8 @@ export async function GET(request: NextRequest) {
   const stocksTicker = searchParams.get("stocksTicker");
   const multiplier = searchParams.get("multiplier");
   const timespan = searchParams.get("timespan");
-  const startDate = searchParams.get("startDate")
-  const endDate = searchParams.get("endDate")
+  const startDate = searchParams.get("startDate");
+  const endDate = searchParams.get("endDate");
 
   const url = `https://api.polygon.io/v2/aggs/ticker/${stocksTicker}/range/${multiplier}/${timespan}/${startDate}/${endDate}?adjusted=true&sort=asc&apiKey=${process.env.POLYGON_KEY}`;
   const res = await fetch(url, {
@@ -25,5 +31,18 @@ export async function GET(request: NextRequest) {
   });
   const data = await res.json();
 
-  return NextResponse.json({ data });
+  return NextResponse.json(
+    { data },
+    {
+      status: 200,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+        "Cache-Control": "public, s-maxage=1800",
+        "CDN-Cache-Control": "public, s-maxage=1800",
+        "Vercel-CDN-Cache-Control": "public, s-maxage=3600",
+      },
+    }
+  );
 }
