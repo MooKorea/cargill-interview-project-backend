@@ -1,18 +1,5 @@
 import { unstable_cache } from "next/cache";
 
-const getCachedSymbol = unstable_cache(async (query) => {
-  const url = `https://financialmodelingprep.com/api/v3/search?query=${query.toUpperCase()}&limit=10&apikey=${
-    process.env.FINANCIAL_MODELING_PREP_KEY
-  }`;
-
-  return fetch(url, {
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
-});
-
-
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const query = searchParams.get("query");
@@ -21,12 +8,25 @@ export async function GET(request: Request) {
     return new Response("Error: query not provided", { status: 400 });
   }
 
+  const getCachedSymbol = unstable_cache(async (query) => {
+    const url = `https://financialmodelingprep.com/api/v3/search?query=${query.toUpperCase()}&limit=10&apikey=${
+      process.env.FINANCIAL_MODELING_PREP_KEY
+    }`;
+
+    const res = await fetch(url, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    return res.json();
+  }, [query]);
+
   try {
     const res = await getCachedSymbol(query);
-    const data = await res.json();
 
     return Response.json(
-      { data },
+      { res },
       {
         status: 200,
         headers: {
